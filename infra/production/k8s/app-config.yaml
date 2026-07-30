@@ -4,6 +4,7 @@ metadata:
   name: app-config
 data:
   ENVIRONMENT: "production"
+  KAFKA_BROKERS: "kafka:9092"
   JAEGER_ENDPOINT: "http://jaeger:14268/api/traces"
   GATEWAY_HTTP_ADDR: ":8081"
   STRIPE_SUCCESS_URL: "http://localhost:3000?payment=success"

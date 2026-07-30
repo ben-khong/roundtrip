@@ -9,6 +9,7 @@ import (
 	"roundtrip/shared/env"
 	"roundtrip/shared/messaging"
 	"roundtrip/shared/tracing"
+	"strings"
 	"syscall"
 
 	grpcserver "google.golang.org/grpc"
@@ -33,7 +34,7 @@ func main() {
 	defer cancel()
 	defer sh(ctx)
 
-	rabbitMqURI := env.GetString("RABBITMQ_URI", "amqp://guest:guest@rabbitmq:5672/")
+	kafkaBrokers := strings.Split(env.GetString("KAFKA_BROKERS", "kafka:9092"), ",")
 
 	go func() {
 		sigCh := make(chan os.Signal, 1)
@@ -49,20 +50,20 @@ func main() {
 
 	svc := NewService()
 
-	// RabbitMQ connection
-	rabbitmq, err := messaging.NewRabbitMQ(rabbitMqURI)
+	// Kafka connection
+	kafka, err := messaging.NewKafka(kafkaBrokers)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer rabbitmq.Close()
+	defer kafka.Close()
 
-	log.Println("Starting RabbitMQ connection")
+	log.Println("Starting Kafka connection")
 
 	// Starting the gRPC server
 	grpcServer := grpcserver.NewServer(tracing.WithTracingInterceptors()...)
 	NewGrpcHandler(grpcServer, svc)
 
-	consumer := NewTripConsumer(rabbitmq, svc)
+	consumer := NewTripConsumer(kafka, svc)
 	go func() {
 		if err := consumer.Listen(); err != nil {
 			log.Fatalf("Failed to listen to the message: %v", err)

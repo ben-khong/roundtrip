@@ -45,12 +45,12 @@ spec:
                   name: app-config
                   key: STRIPE_CANCEL_URL
 
-            # RabbitMQ credentials
-            - name: RABBITMQ_URI
+            # Kafka brokers
+            - name: KAFKA_BROKERS
               valueFrom:
-                secretKeyRef:
-                  name: rabbitmq-credentials
-                  key: uri
+                configMapKeyRef:
+                  key: KAFKA_BROKERS
+                  name: app-config
 
             # Jaeger endpoint
             - name: JAEGER_ENDPOINT

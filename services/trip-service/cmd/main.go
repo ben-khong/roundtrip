@@ -14,6 +14,7 @@ import (
 	"roundtrip/shared/env"
 	"roundtrip/shared/messaging"
 	"roundtrip/shared/tracing"
+	"strings"
 	"syscall"
 
 	grpcserver "google.golang.org/grpc"
@@ -49,7 +50,7 @@ func main() {
 
 	log.Printf(mongoDb.Name())
 
-	rabbitMqURI := env.GetString("RABBITMQ_URI", "amqp://guest:guest@rabbitmq:5672/")
+	kafkaBrokers := strings.Split(env.GetString("KAFKA_BROKERS", "kafka:9092"), ",")
 
 	mongoDBRepo := repository.NewMongoRepository(mongoDb)
 	svc := service.NewService(mongoDBRepo)
@@ -66,23 +67,23 @@ func main() {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	// RabbitMQ connection
-	rabbitmq, err := messaging.NewRabbitMQ(rabbitMqURI)
+	// Kafka connection
+	kafka, err := messaging.NewKafka(kafkaBrokers)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer rabbitmq.Close()
+	defer kafka.Close()
 
-	log.Println("Starting RabbitMQ connection")
+	log.Println("Starting Kafka connection")
 
-	publisher := events.NewTripEventPublisher(rabbitmq)
+	publisher := events.NewTripEventPublisher(kafka)
 
 	// Start driver consumer
-	driverConsumer := events.NewDriverConsumer(rabbitmq, svc)
+	driverConsumer := events.NewDriverConsumer(kafka, svc)
 	go driverConsumer.Listen()
 
 	// Start payment consumer
-	paymentConsumer := events.NewPaymentConsumer(rabbitmq, svc)
+	paymentConsumer := events.NewPaymentConsumer(kafka, svc)
 	go paymentConsumer.Listen()
 
 	// Starting the gRPC server

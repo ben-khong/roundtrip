@@ -4,7 +4,7 @@ A ride-sharing platform powered by a Go microservices backend, running on Docker
 
 ## Overview
 
-Roundtrip is a backend system for a ride-sharing application, built as a set of independently deployable Go microservices. It includes an API gateway, driver and trip management, payment processing, async messaging via RabbitMQ, and distributed tracing via Jaeger. The system is designed to be horizontally scalable and deployable to a Kubernetes cluster, either locally (Minikube / Docker Desktop) or in the cloud (example: Google Kubernetes Engine).
+Roundtrip is a backend system for a ride-sharing application, built as a set of independently deployable Go microservices. It includes an API gateway, driver and trip management, payment processing, async messaging via Kafka, and distributed tracing via Jaeger. The system is designed to be horizontally scalable and deployable to a Kubernetes cluster, either locally (Minikube / Docker Desktop) or in the cloud (example: Google Kubernetes Engine).
 
 ## Architecture
 
@@ -15,12 +15,12 @@ Roundtrip is a backend system for a ride-sharing application, built as a set of 
 - `payment-service` – handles payment processing
 
 **Infrastructure**
-- RabbitMQ – async messaging between services
+- Kafka – async messaging between services
 - Jaeger – distributed tracing
 
 ### Trip scheduling flow
 
-[![Trip scheduling flow](https://mermaid.ink/img/pako:eNqNVt9v2jAQ_lcsP21qGvGjZSEPlSpaTX1YxWDVpAmpMvZBIkicOQ6UVf3fd4mdEgcKzQOK47v7vjt_d-aVcimAhnSW5vC3gJTDXcyWiiWzlOCTMaVjHmcs1eQpB3X49Xb88J1p2LLd4d4vFWdTUJuYw-HmnYo3oM5sH34fs10Cqf7Qb6oRFL-bnZLz5c3NnmRIRgrwteJGJmXOuTa2eyP0aFAPyXIyHtWO5YaxN7-PEoNJpNrM1nOSCw3Y_QuPWLq0nBvWl4h30fIos_Bhg5n6vMIVDTgVLyNN5II4LO9L65A8wrbyJimAyAkjwlbSBHBwENisQ2vl80T4pfezapbGRW1RHckkYaloILMNi9dsvgYXtHUQv2E-lXwF-hCccQ5ZE3sNiwZ0A_O2sjSw6oPTbB_nWbT3TB3dGEiykGrLlABBtCQTNp_H-sdP8sUwK3EmkGcS2-lnAQV8rUtwVCchGSvJIc8tJ2KoMGxDjxSZKIVapZZrpovc9_2j4nF7whGPifvM8jxepp8XkW2SzAQmOVKMZXoyF6_Nwq5bunetkLxp2HfIUQR8JQts5Bqz9DJGx3K1ZtZdHAVpCc9mZStkc3s-0WZtTFukOsGnB5QeE7u6PM4gKScQsozktmF_TmuN1qidUHZJa6q9V04m2RowlrV1SnbQc5GUq33YacFL_R2faHtPzxXt0ZN1O-6iXbRW1Zu4HxeiqjTJivk6ziPTcp-U1aXD-NPgZ46a21KL061Qj6kzc38_facarzCyv1tOdGgVk7OUpCipOSxjZEI9moBKWCzwKn8tQ8yojiCBGQ3xVTC1muEV_4Z2rNByuks5DbUqwKNKFsuIhgu2znFlZo79C1Cb4L36R8rmkoav9IWGvW_-1XVn0O_1-kE3GAyHgUd3-Lnb8fu9frc_xKfbvQ6CN4_-qyJ0_KDX7Q86QTDoDAfD66ve23_1IPGQ?type=png)](https://mermaid.live/edit#pako:eNqNVt9v2jAQ_lcsP21qGvGjZSEPlSpaTX1YxWDVpAmpMvZBIkicOQ6UVf3fd4mdEgcKzQOK47v7vjt_d-aVcimAhnSW5vC3gJTDXcyWiiWzlOCTMaVjHmcs1eQpB3X49Xb88J1p2LLd4d4vFWdTUJuYw-HmnYo3oM5sH34fs10Cqf7Qb6oRFL-bnZLz5c3NnmRIRgrwteJGJmXOuTa2eyP0aFAPyXIyHtWO5YaxN7-PEoNJpNrM1nOSCw3Y_QuPWLq0nBvWl4h30fIos_Bhg5n6vMIVDTgVLyNN5II4LO9L65A8wrbyJimAyAkjwlbSBHBwENisQ2vl80T4pfezapbGRW1RHckkYaloILMNi9dsvgYXtHUQv2E-lXwF-hCccQ5ZE3sNiwZ0A_O2sjSw6oPTbB_nWbT3TB3dGEiykGrLlABBtCQTNp_H-sdP8sUwK3EmkGcS2-lnAQV8rUtwVCchGSvJIc8tJ2KoMGxDjxSZKIVapZZrpovc9_2j4nF7whGPifvM8jxepp8XkW2SzAQmOVKMZXoyF6_Nwq5bunetkLxp2HfIUQR8JQts5Bqz9DJGx3K1ZtZdHAVpCc9mZStkc3s-0WZtTFukOsGnB5QeE7u6PM4gKScQsozktmF_TmuN1qidUHZJa6q9V04m2RowlrV1SnbQc5GUq33YacFL_R2faHtPzxXt0ZN1O-6iXbRW1Zu4HxeiqjTJivk6ziPTcp-U1aXD-NPgZ46a21KL061Qj6kzc38_facarzCyv1tOdGgVk7OUpCipOSxjZEI9moBKWCzwKn8tQ8yojiCBGQ3xVTC1muEV_4Z2rNByuks5DbUqwKNKFsuIhgu2znFlZo79C1Cb4L36R8rmkoav9IWGvW_-1XVn0O_1-kE3GAyHgUd3-Lnb8fu9frc_xKfbvQ6CN4_-qyJ0_KDX7Q86QTDoDAfD66ve23_1IPGQ)
+[![Trip scheduling flow](https://mermaid.ink/img/pako:eNqNVW1r2zAQ_itCnzbqmry0meMPhZKOUQYlLCuDESiKfElEYsuT5WRZ6X_f2ZIbyXmrPxhbeu6eu9Nzp1fKZQI0ptOsgD8lZBweBFsolk4zgk_OlBZc5CzT5LkAdbh6P378xjRs2e5w76cS-QTURnA43HxQYgPqwvbh-pjtUsj0SbuJRlJcNztVzNd3d_sgYzJSgJ91bORHlXOhDXYPQgsn9JgsfoxHjWG1YfDm_STRmcRQ3WwDL7mYfGfzFTN4B3WNPFctZBV9CBvMMOQ1X-LQKLFYaiLnxIvua4WOyRNsa2uSASQFYSSxFTQOPB4kNv-xRYU8TcLK-kW5JfFZW6GOZJqyLHGY2YaJNZutwSdtHcAvmE0kX4E-JGecQ-5yr2HuUDuc9zXS0KoTp9g-xots75l6ejGUZC7VlqkEEqKlOVDy6bhHBOSCf26KcFQhMRkryaEobFTEmDJswICUeVJJtE6u0EyXRRiGR-Xjd4MnH-P3hRWFWGQfl5Ftj9w4JgWGKGR2NpegHYUjd38LIzb9-c4zWgJfyRL7tiGqrAzoWIIWZs2ToyQtvdlUbFlsQi9nuqvNaStjl8nzIyqOJbumJt7cqAYORrmUWwd_SWJORzRGqLa0NcTeKyfTfA3oy2K9kh202lLK1d7tpOSV6I4PsL1l4CnDOU6_u67alWqV2iU7nX1dXpKXs7Uolk57nRDQtRfbhxkvHCq3RU3OK72ZQycG-n6sTjTeSWR_WZxpvPom4iwjGYpmBguBEdCApqBSJhK8m18rF1Oql5DClMb4mTC1muKd_YY4Vmo52WWcxlqVEFAly8WSxnO2LvDPjBJ7pzcQvCh_S-n-0viV_qVx70t4c9sZ9Hu9ftSNBsNhFNAdLnc7Yb_X7_aH-HS7t1H0FtB_tYdOGPW6_UEnigad4WB4e9N7-w8C8t81?type=png)](https://mermaid.live/edit#pako:eNqNVW1r2zAQ_itCnzbqmry0meMPhZKOUQYlLCuDESiKfElEYsuT5WRZ6X_f2ZIbyXmrPxhbeu6eu9Nzp1fKZQI0ptOsgD8lZBweBFsolk4zgk_OlBZc5CzT5LkAdbh6P378xjRs2e5w76cS-QTURnA43HxQYgPqwvbh-pjtUsj0SbuJRlJcNztVzNd3d_sgYzJSgJ91bORHlXOhDXYPQgsn9JgsfoxHjWG1YfDm_STRmcRQ3WwDL7mYfGfzFTN4B3WNPFctZBV9CBvMMOQ1X-LQKLFYaiLnxIvua4WOyRNsa2uSASQFYSSxFTQOPB4kNv-xRYU8TcLK-kW5JfFZW6GOZJqyLHGY2YaJNZutwSdtHcAvmE0kX4E-JGecQ-5yr2HuUDuc9zXS0KoTp9g-xots75l6ejGUZC7VlqkEEqKlOVDy6bhHBOSCf26KcFQhMRkryaEobFTEmDJswICUeVJJtE6u0EyXRRiGR-Xjd4MnH-P3hRWFWGQfl5Ftj9w4JgWGKGR2NpegHYUjd38LIzb9-c4zWgJfyRL7tiGqrAzoWIIWZs2ToyQtvdlUbFlsQi9nuqvNaStjl8nzIyqOJbumJt7cqAYORrmUWwd_SWJORzRGqLa0NcTeKyfTfA3oy2K9kh202lLK1d7tpOSV6I4PsL1l4CnDOU6_u67alWqV2iU7nX1dXpKXs7Uolk57nRDQtRfbhxkvHCq3RU3OK72ZQycG-n6sTjTeSWR_WZxpvPom4iwjGYpmBguBEdCApqBSJhK8m18rF1Oql5DClMb4mTC1muKd_YY4Vmo52WWcxlqVEFAly8WSxnO2LvDPjBJ7pzcQvCh_S-n-0viV_qVx70t4c9sZ9Hu9ftSNBsNhFNAdLnc7Yb_X7_aH-HS7t1H0FtB_tYdOGPW6_UEnigad4WB4e9N7-w8C8t81)
 
 ## Tech stack
 
@@ -28,7 +28,7 @@ Roundtrip is a backend system for a ride-sharing application, built as a set of 
 - **Containers:** Docker
 - **Orchestration:** Kubernetes
 - **Local dev:** Tilt, Minikube
-- **Messaging:** RabbitMQ
+- **Messaging:** Kafka
 - **Tracing:** Jaeger
 
 ## Project structure
@@ -172,8 +172,8 @@ kubectl apply -f infra/production/k8s/secrets.yaml
 
 # Infrastructure
 kubectl apply -f infra/production/k8s/jaeger-deployment.yaml
-kubectl apply -f infra/production/k8s/rabbitmq-deployment.yaml
-# Wait for Jaeger and RabbitMQ to be running
+kubectl apply -f infra/production/k8s/kafka-deployment.yaml
+# Wait for Jaeger and Kafka to be running
 
 # Services
 kubectl apply -f infra/production/k8s/api-gateway-deployment.yaml

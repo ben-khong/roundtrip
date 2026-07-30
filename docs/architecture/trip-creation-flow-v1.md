@@ -18,7 +18,7 @@ sequenceDiagram
 
   User ->> APIGateway: Create Trip Request
   APIGateway ->> TripService: gRPC: CreateTrip
-  Note over TripService, DriverService: Trip Exchange
+  Note over TripService, DriverService: Kafka
   TripService -->>+ DriverService: trip.event.created
   Note right of TripService: Event: New trip needs a driver
   DriverService ->> Driver: driver.cmd.trip_request
@@ -26,7 +26,7 @@ sequenceDiagram
   Driver ->> APIGateway: WebSocket: driver.cmd.trip_accept
   Note left of Driver: Command: Accept trip request
   APIGateway -->> TripService: driver.cmd.trip_accept
-  Note right of APIGateway: Command forwarded to RabbitMQ (DriverTripResponseQueue)
+  Note right of APIGateway: Command forwarded to Kafka (driver.cmd.trip_accept / driver.cmd.trip_decline topics)
   Note over TripService: Process driver acceptance, update trip status...
   TripService -->> PaymentService: trip.event.driver_assigned
   Note right of TripService: Event: Create payment session

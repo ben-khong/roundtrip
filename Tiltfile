@@ -8,10 +8,10 @@ k8s_yaml('./infra/development/k8s/secrets.yaml')
 k8s_yaml('./infra/development/k8s/app-config.yaml')
 
 ### End of K8s Config ###
-### RabbitMQ ###
-k8s_yaml('./infra/development/k8s/rabbitmq-deployment.yaml')
-k8s_resource('rabbitmq', port_forwards=['5672', '15672'], labels='tooling')
-### End RabbitMQ ###
+### Kafka ###
+k8s_yaml('./infra/development/k8s/kafka-deployment.yaml')
+k8s_resource('kafka', labels='tooling')
+### End Kafka ###
 ### API Gateway ###
 
 gateway_compile_cmd = 'CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o build/api-gateway ./services/api-gateway'
@@ -41,7 +41,7 @@ docker_build_with_restart(
 
 k8s_yaml('./infra/development/k8s/api-gateway-deployment.yaml')
 k8s_resource('api-gateway', port_forwards=8081,
-             resource_deps=['api-gateway-compile', 'rabbitmq'], labels="services")
+             resource_deps=['api-gateway-compile', 'kafka'], labels="services")
 ### End of API Gateway ###
 ### Trip Service ###
 
@@ -70,7 +70,7 @@ docker_build_with_restart(
 )
 
 k8s_yaml('./infra/development/k8s/trip-service-deployment.yaml')
-k8s_resource('trip-service', resource_deps=['trip-service-compile', 'rabbitmq'], labels="services")
+k8s_resource('trip-service', resource_deps=['trip-service-compile', 'kafka'], labels="services")
 
 ### End of Trip Service ###
 ### Driver Service ###
@@ -100,7 +100,7 @@ docker_build_with_restart(
 )
 
 k8s_yaml('./infra/development/k8s/driver-service-deployment.yaml')
-k8s_resource('driver-service', resource_deps=['driver-service-compile', 'rabbitmq'], labels="services")
+k8s_resource('driver-service', resource_deps=['driver-service-compile', 'kafka'], labels="services")
 
 ### End of Driver Service ###
 ### Web Frontend ###
@@ -143,7 +143,7 @@ docker_build_with_restart(
 )
 
 k8s_yaml('./infra/development/k8s/payment-service-deployment.yaml')
-k8s_resource('payment-service', resource_deps=['payment-service-compile', 'rabbitmq'], labels="services")
+k8s_resource('payment-service', resource_deps=['payment-service-compile', 'kafka'], labels="services")
 
 ### End of Payment Service ###
 

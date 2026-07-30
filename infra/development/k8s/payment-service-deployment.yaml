@@ -48,12 +48,12 @@ spec:
                   name: stripe-secrets
                   key: stripe-secret-key
 
-            # RabbitMQ credentials
-            - name: RABBITMQ_URI
+            # Kafka brokers
+            - name: KAFKA_BROKERS
               valueFrom:
-                secretKeyRef:
-                  name: rabbitmq-credentials
-                  key: uri
+                configMapKeyRef:
+                  key: KAFKA_BROKERS
+                  name: app-config
 ---
 apiVersion: v1
 kind: Service

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -15,8 +16,8 @@ import (
 )
 
 var (
-	httpAddr    = env.GetString("HTTP_ADDR", ":8081")
-	rabbitMqURI = env.GetString("RABBITMQ_URI", "amqp://guest:guest@rabbitmq:5672/")
+	httpAddr     = env.GetString("HTTP_ADDR", ":8081")
+	kafkaBrokers = strings.Split(env.GetString("KAFKA_BROKERS", "kafka:9092"), ",")
 )
 
 func main() {
@@ -40,25 +41,41 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	// RabbitMQ connection
-	rabbitmq, err := messaging.NewRabbitMQ(rabbitMqURI)
+	// Kafka connection
+	kafka, err := messaging.NewKafka(kafkaBrokers)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer rabbitmq.Close()
+	defer kafka.Close()
 
-	log.Println("Starting RabbitMQ connection")
+	log.Println("Starting Kafka connection")
+
+	// Forward the rider and driver notifications to their websocket connections
+	wsGroups := []string{
+		messaging.NotifyDriverNoDriversFoundGroup,
+		messaging.NotifyDriverAssignGroup,
+		messaging.NotifyPaymentSessionCreatedGroup,
+		messaging.DriverCmdTripRequestGroup,
+	}
+
+	for _, g := range wsGroups {
+		consumer := messaging.NewGroupConsumer(kafka, connManager, g)
+
+		if err := consumer.Start(); err != nil {
+			log.Fatalf("Failed to start consumer for group: %s: err: %v", g, err)
+		}
+	}
 
 	mux.Handle("POST /trip/preview", tracing.WrapHandlerFunc(enableCORS(handleTripPreview), "/trip/preview"))
 	mux.Handle("POST /trip/start", tracing.WrapHandlerFunc(enableCORS(handleTripStart), "/trip/start"))
 	mux.Handle("/ws/drivers", tracing.WrapHandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		handleDriversWebSocket(w, r, rabbitmq)
+		handleDriversWebSocket(w, r, kafka)
 	}, "/ws/drivers"))
 	mux.Handle("/ws/riders", tracing.WrapHandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		handleRidersWebSocket(w, r, rabbitmq)
+		handleRidersWebSocket(w, r)
 	}, "/ws/riders"))
 	mux.Handle("/webhook/stripe", tracing.WrapHandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		handleStripeWebhook(w, r, rabbitmq)
+		handleStripeWebhook(w, r, kafka)
 	}, "/webhook/stripe"))
 
 	server := &http.Server{

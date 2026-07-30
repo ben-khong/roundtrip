@@ -1,12 +1,12 @@
 package contracts
 
-// AmqpMessage is the message structure for AMQP.
-type AmqpMessage struct {
+// KafkaMessage is the message structure published to Kafka.
+type KafkaMessage struct {
 	OwnerID string `json:"ownerId"`
 	Data    []byte `json:"data"`
 }
 
-// Routing keys - using consistent event/command patterns
+// Topics - using consistent event/command patterns
 const (
 	// Trip events (trip.event.*)
 	TripEventCreated             = "trip.event.created"

@@ -7,25 +7,25 @@ import (
 	"roundtrip/shared/contracts"
 	"roundtrip/shared/messaging"
 
-	"github.com/rabbitmq/amqp091-go"
+	"github.com/segmentio/kafka-go"
 )
 
 type tripConsumer struct {
-	rabbitmq *messaging.RabbitMQ
-	service  *Service
+	kafka   *messaging.Kafka
+	service *Service
 }
 
-func NewTripConsumer(rabbitmq *messaging.RabbitMQ, service *Service) *tripConsumer {
+func NewTripConsumer(kafka *messaging.Kafka, service *Service) *tripConsumer {
 	return &tripConsumer{
-		rabbitmq: rabbitmq,
-		service:  service,
+		kafka:   kafka,
+		service: service,
 	}
 }
 
 func (c *tripConsumer) Listen() error {
-	return c.rabbitmq.ConsumeMessages(messaging.FindAvailableDriversQueue, func(ctx context.Context, msg amqp091.Delivery) error {
-		var tripEvent contracts.AmqpMessage
-		if err := json.Unmarshal(msg.Body, &tripEvent); err != nil {
+	return c.kafka.ConsumeMessages(messaging.FindAvailableDriversGroup, func(ctx context.Context, msg kafka.Message) error {
+		var tripEvent contracts.KafkaMessage
+		if err := json.Unmarshal(msg.Value, &tripEvent); err != nil {
 			log.Printf("Failed to unmarshal message: %v", err)
 			return err
 		}
@@ -38,7 +38,7 @@ func (c *tripConsumer) Listen() error {
 
 		log.Printf("driver received message: %+v", payload)
 
-		switch msg.RoutingKey {
+		switch msg.Topic {
 		case contracts.TripEventCreated, contracts.TripEventDriverNotInterested:
 			return c.handleFindAndNotifyDrivers(ctx, payload)
 		}
@@ -56,10 +56,10 @@ func (c *tripConsumer) handleFindAndNotifyDrivers(ctx context.Context, payload m
 
 	if len(suitableIDs) == 0 {
 		// Notify the driver that no drivers are available
-		if err := c.rabbitmq.PublishMessage(ctx, contracts.TripEventNoDriversFound, contracts.AmqpMessage{
+		if err := c.kafka.PublishMessage(ctx, contracts.TripEventNoDriversFound, contracts.KafkaMessage{
 			OwnerID: payload.Trip.UserID,
 		}); err != nil {
-			log.Printf("Failed to publish message to exchange: %v", err)
+			log.Printf("Failed to publish message to Kafka: %v", err)
 			return err
 		}
 
@@ -74,11 +74,11 @@ func (c *tripConsumer) handleFindAndNotifyDrivers(ctx context.Context, payload m
 	}
 
 	// Notify the driver about a potential trip
-	if err := c.rabbitmq.PublishMessage(ctx, contracts.DriverCmdTripRequest, contracts.AmqpMessage{
+	if err := c.kafka.PublishMessage(ctx, contracts.DriverCmdTripRequest, contracts.KafkaMessage{
 		OwnerID: suitableDriverID,
 		Data:    marshalledEvent,
 	}); err != nil {
-		log.Printf("Failed to publish message to exchange: %v", err)
+		log.Printf("Failed to publish message to Kafka: %v", err)
 		return err
 	}
 

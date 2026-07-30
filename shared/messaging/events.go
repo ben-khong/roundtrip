@@ -5,17 +5,20 @@ import (
 	pb "roundtrip/shared/proto/trip"
 )
 
+// Consumer groups. Each group subscribes to the topics listed in consumerGroupTopics.
 const (
-	FindAvailableDriversQueue        = "find_available_drivers"
-	DriverCmdTripRequestQueue        = "driver_cmd_trip_request"
-	DriverTripResponseQueue          = "driver_trip_response"
-	NotifyDriverNoDriversFoundQueue  = "notify_driver_no_drivers_found"
-	NotifyDriverAssignQueue          = "notify_driver_assign"
-	PaymentTripResponseQueue         = "payment_trip_response"
-	NotifyPaymentSessionCreatedQueue = "notify_payment_session_created"
-	NotifyPaymentSuccessQueue        = "payment_success"
-	DeadLetterQueue                  = "dead_letter_queue"
+	FindAvailableDriversGroup        = "find_available_drivers"
+	DriverCmdTripRequestGroup        = "driver_cmd_trip_request"
+	DriverTripResponseGroup          = "driver_trip_response"
+	NotifyDriverNoDriversFoundGroup  = "notify_driver_no_drivers_found"
+	NotifyDriverAssignGroup          = "notify_driver_assign"
+	PaymentTripResponseGroup         = "payment_trip_response"
+	NotifyPaymentSessionCreatedGroup = "notify_payment_session_created"
+	NotifyPaymentSuccessGroup        = "payment_success"
 )
+
+// DeadLetterTopic receives the messages that failed processing after all retries
+const DeadLetterTopic = "dead_letter_queue"
 
 type TripEventData struct {
 	Trip *pb.Trip `json:"trip"`

@@ -9,25 +9,25 @@ import (
 	"roundtrip/shared/contracts"
 	"roundtrip/shared/messaging"
 
-	"github.com/rabbitmq/amqp091-go"
+	"github.com/segmentio/kafka-go"
 )
 
 type paymentConsumer struct {
-	rabbitmq *messaging.RabbitMQ
-	service  domain.TripService
+	kafka   *messaging.Kafka
+	service domain.TripService
 }
 
-func NewPaymentConsumer(rabbitmq *messaging.RabbitMQ, service domain.TripService) *paymentConsumer {
+func NewPaymentConsumer(kafka *messaging.Kafka, service domain.TripService) *paymentConsumer {
 	return &paymentConsumer{
-		rabbitmq: rabbitmq,
-		service:  service,
+		kafka:   kafka,
+		service: service,
 	}
 }
 
 func (c *paymentConsumer) Listen() error {
-	return c.rabbitmq.ConsumeMessages(messaging.NotifyPaymentSuccessQueue, func(ctx context.Context, msg amqp091.Delivery) error {
-		var message contracts.AmqpMessage
-		if err := json.Unmarshal(msg.Body, &message); err != nil {
+	return c.kafka.ConsumeMessages(messaging.NotifyPaymentSuccessGroup, func(ctx context.Context, msg kafka.Message) error {
+		var message contracts.KafkaMessage
+		if err := json.Unmarshal(msg.Value, &message); err != nil {
 			log.Printf("Failed to unmarshal message: %v", err)
 			return err
 		}

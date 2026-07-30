@@ -13,6 +13,7 @@ import (
 	"roundtrip/shared/env"
 	"roundtrip/shared/messaging"
 	"roundtrip/shared/tracing"
+	"strings"
 )
 
 var GrpcAddr = env.GetString("GRPC_ADDR", ":9004")
@@ -34,7 +35,7 @@ func main() {
 	defer cancel()
 	defer sh(ctx)
 
-	rabbitMqURI := env.GetString("RABBITMQ_URI", "amqp://guest:guest@rabbitmq:5672/")
+	kafkaBrokers := strings.Split(env.GetString("KAFKA_BROKERS", "kafka:9092"), ",")
 
 	go func() {
 		sigCh := make(chan os.Signal, 1)
@@ -65,14 +66,14 @@ func main() {
 
 	log.Println(svc)
 
-	// RabbitMQ connection
-	rabbitmq, err := messaging.NewRabbitMQ(rabbitMqURI)
+	// Kafka connection
+	kafka, err := messaging.NewKafka(kafkaBrokers)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer rabbitmq.Close()
+	defer kafka.Close()
 
-	log.Println("Starting RabbitMQ connection")
+	log.Println("Starting Kafka connection")
 
 	// Wait for shutdown signal
 	<-ctx.Done()
