@@ -1,241 +1,248 @@
-# "Microservices with Go" course project
+# Roundtrip
 
-This is the starter code for the "Microservices with Go" project.
+A ride-sharing platform powered by a Go microservices backend, running on Docker and Kubernetes.
 
-## Project overview
+## Overview
 
-In this project‑driven course, you’ll build the backend microservices system for a Uber‑style ride‑sharing app from the ground up—using Go, Docker, and Kubernetes.
+Roundtrip is a backend system for a ride-sharing application, built as a set of independently deployable Go microservices. It includes an API gateway, driver and trip management, payment processing, async messaging via RabbitMQ, and distributed tracing via Jaeger. The system is designed to be horizontally scalable and deployable to a Kubernetes cluster, either locally (Minikube / Docker Desktop) or in the cloud (example: Google Kubernetes Engine).
 
-By the end, you’ll have a fully deployed, horizontally scalable ride‑sharing system that’s ready for real traffic. Plus, you’ll walk away with reusable template for building future distributed projects—accelerating your path to become a lead engineer.
+## Architecture
 
-Check it out at: https://www.selfmadeengineer.com/
+**Services**
+- `api-gateway` – entry point for client requests, routes to internal services
+- `driver-service` – manages driver state and availability
+- `trip-service` – handles trip scheduling and lifecycle
+- `payment-service` – handles payment processing
 
-## Trip Scheduling Flow
-[![](https://mermaid.ink/img/pako:eNqNVt9v2jAQ_lcsP21qGvGjZSEPlSpaTX1YxWDVpAmpMvZBIkicOQ6UVf3fd4mdEgcKzQOK47v7vjt_d-aVcimAhnSW5vC3gJTDXcyWiiWzlOCTMaVjHmcs1eQpB3X49Xb88J1p2LLd4d4vFWdTUJuYw-HmnYo3oM5sH34fs10Cqf7Qb6oRFL-bnZLz5c3NnmRIRgrwteJGJmXOuTa2eyP0aFAPyXIyHtWO5YaxN7-PEoNJpNrM1nOSCw3Y_QuPWLq0nBvWl4h30fIos_Bhg5n6vMIVDTgVLyNN5II4LO9L65A8wrbyJimAyAkjwlbSBHBwENisQ2vl80T4pfezapbGRW1RHckkYaloILMNi9dsvgYXtHUQv2E-lXwF-hCccQ5ZE3sNiwZ0A_O2sjSw6oPTbB_nWbT3TB3dGEiykGrLlABBtCQTNp_H-sdP8sUwK3EmkGcS2-lnAQV8rUtwVCchGSvJIc8tJ2KoMGxDjxSZKIVapZZrpovc9_2j4nF7whGPifvM8jxepp8XkW2SzAQmOVKMZXoyF6_Nwq5bunetkLxp2HfIUQR8JQts5Bqz9DJGx3K1ZtZdHAVpCc9mZStkc3s-0WZtTFukOsGnB5QeE7u6PM4gKScQsozktmF_TmuN1qidUHZJa6q9V04m2RowlrV1SnbQc5GUq33YacFL_R2faHtPzxXt0ZN1O-6iXbRW1Zu4HxeiqjTJivk6ziPTcp-U1aXD-NPgZ46a21KL061Qj6kzc38_facarzCyv1tOdGgVk7OUpCipOSxjZEI9moBKWCzwKn8tQ8yojiCBGQ3xVTC1muEV_4Z2rNByuks5DbUqwKNKFsuIhgu2znFlZo79C1Cb4L36R8rmkoav9IWGvW_-1XVn0O_1-kE3GAyHgUd3-Lnb8fu9frc_xKfbvQ6CN4_-qyJ0_KDX7Q86QTDoDAfD66ve23_1IPGQ?type=png)](https://mermaid.live/edit#pako:eNqNVt9v2jAQ_lcsP21qGvGjZSEPlSpaTX1YxWDVpAmpMvZBIkicOQ6UVf3fd4mdEgcKzQOK47v7vjt_d-aVcimAhnSW5vC3gJTDXcyWiiWzlOCTMaVjHmcs1eQpB3X49Xb88J1p2LLd4d4vFWdTUJuYw-HmnYo3oM5sH34fs10Cqf7Qb6oRFL-bnZLz5c3NnmRIRgrwteJGJmXOuTa2eyP0aFAPyXIyHtWO5YaxN7-PEoNJpNrM1nOSCw3Y_QuPWLq0nBvWl4h30fIos_Bhg5n6vMIVDTgVLyNN5II4LO9L65A8wrbyJimAyAkjwlbSBHBwENisQ2vl80T4pfezapbGRW1RHckkYaloILMNi9dsvgYXtHUQv2E-lXwF-hCccQ5ZE3sNiwZ0A_O2sjSw6oPTbB_nWbT3TB3dGEiykGrLlABBtCQTNp_H-sdP8sUwK3EmkGcS2-lnAQV8rUtwVCchGSvJIc8tJ2KoMGxDjxSZKIVapZZrpovc9_2j4nF7whGPifvM8jxepp8XkW2SzAQmOVKMZXoyF6_Nwq5bunetkLxp2HfIUQR8JQts5Bqz9DJGx3K1ZtZdHAVpCc9mZStkc3s-0WZtTFukOsGnB5QeE7u6PM4gKScQsozktmF_TmuN1qidUHZJa6q9V04m2RowlrV1SnbQc5GUq33YacFL_R2faHtPzxXt0ZN1O-6iXbRW1Zu4HxeiqjTJivk6ziPTcp-U1aXD-NPgZ46a21KL061Qj6kzc38_facarzCyv1tOdGgVk7OUpCipOSxjZEI9moBKWCzwKn8tQ8yojiCBGQ3xVTC1muEV_4Z2rNByuks5DbUqwKNKFsuIhgu2znFlZo79C1Cb4L36R8rmkoav9IWGvW_-1XVn0O_1-kE3GAyHgUd3-Lnb8fu9frc_xKfbvQ6CN4_-qyJ0_KDX7Q86QTDoDAfD66ve23_1IPGQ)
+**Infrastructure**
+- RabbitMQ – async messaging between services
+- Jaeger – distributed tracing
 
+### Trip scheduling flow
 
-## Installation
-The project requires a couple tools to run, most of which are part of many developer's toolchains.
+[![Trip scheduling flow](https://mermaid.ink/img/pako:eNqNVt9v2jAQ_lcsP21qGvGjZSEPlSpaTX1YxWDVpAmpMvZBIkicOQ6UVf3fd4mdEgcKzQOK47v7vjt_d-aVcimAhnSW5vC3gJTDXcyWiiWzlOCTMaVjHmcs1eQpB3X49Xb88J1p2LLd4d4vFWdTUJuYw-HmnYo3oM5sH34fs10Cqf7Qb6oRFL-bnZLz5c3NnmRIRgrwteJGJmXOuTa2eyP0aFAPyXIyHtWO5YaxN7-PEoNJpNrM1nOSCw3Y_QuPWLq0nBvWl4h30fIos_Bhg5n6vMIVDTgVLyNN5II4LO9L65A8wrbyJimAyAkjwlbSBHBwENisQ2vl80T4pfezapbGRW1RHckkYaloILMNi9dsvgYXtHUQv2E-lXwF-hCccQ5ZE3sNiwZ0A_O2sjSw6oPTbB_nWbT3TB3dGEiykGrLlABBtCQTNp_H-sdP8sUwK3EmkGcS2-lnAQV8rUtwVCchGSvJIc8tJ2KoMGxDjxSZKIVapZZrpovc9_2j4nF7whGPifvM8jxepp8XkW2SzAQmOVKMZXoyF6_Nwq5bunetkLxp2HfIUQR8JQts5Bqz9DJGx3K1ZtZdHAVpCc9mZStkc3s-0WZtTFukOsGnB5QeE7u6PM4gKScQsozktmF_TmuN1qidUHZJa6q9V04m2RowlrV1SnbQc5GUq33YacFL_R2faHtPzxXt0ZN1O-6iXbRW1Zu4HxeiqjTJivk6ziPTcp-U1aXD-NPgZ46a21KL061Qj6kzc38_facarzCyv1tOdGgVk7OUpCipOSxjZEI9moBKWCzwKn8tQ8yojiCBGQ3xVTC1muEV_4Z2rNByuks5DbUqwKNKFsuIhgu2znFlZo79C1Cb4L36R8rmkoav9IWGvW_-1XVn0O_1-kE3GAyHgUd3-Lnb8fu9frc_xKfbvQ6CN4_-qyJ0_KDX7Q86QTDoDAfD66ve23_1IPGQ?type=png)](https://mermaid.live/edit#pako:eNqNVt9v2jAQ_lcsP21qGvGjZSEPlSpaTX1YxWDVpAmpMvZBIkicOQ6UVf3fd4mdEgcKzQOK47v7vjt_d-aVcimAhnSW5vC3gJTDXcyWiiWzlOCTMaVjHmcs1eQpB3X49Xb88J1p2LLd4d4vFWdTUJuYw-HmnYo3oM5sH34fs10Cqf7Qb6oRFL-bnZLz5c3NnmRIRgrwteJGJmXOuTa2eyP0aFAPyXIyHtWO5YaxN7-PEoNJpNrM1nOSCw3Y_QuPWLq0nBvWl4h30fIos_Bhg5n6vMIVDTgVLyNN5II4LO9L65A8wrbyJimAyAkjwlbSBHBwENisQ2vl80T4pfezapbGRW1RHckkYaloILMNi9dsvgYXtHUQv2E-lXwF-hCccQ5ZE3sNiwZ0A_O2sjSw6oPTbB_nWbT3TB3dGEiykGrLlABBtCQTNp_H-sdP8sUwK3EmkGcS2-lnAQV8rUtwVCchGSvJIc8tJ2KoMGxDjxSZKIVapZZrpovc9_2j4nF7whGPifvM8jxepp8XkW2SzAQmOVKMZXoyF6_Nwq5bunetkLxp2HfIUQR8JQts5Bqz9DJGx3K1ZtZdHAVpCc9mZStkc3s-0WZtTFukOsGnB5QeE7u6PM4gKScQsozktmF_TmuN1qidUHZJa6q9V04m2RowlrV1SnbQc5GUq33YacFL_R2faHtPzxXt0ZN1O-6iXbRW1Zu4HxeiqjTJivk6ziPTcp-U1aXD-NPgZ46a21KL061Qj6kzc38_facarzCyv1tOdGgVk7OUpCipOSxjZEI9moBKWCzwKn8tQ8yojiCBGQ3xVTC1muEV_4Z2rNByuks5DbUqwKNKFsuIhgu2znFlZo79C1Cb4L36R8rmkoav9IWGvW_-1XVn0O_1-kE3GAyHgUd3-Lnb8fu9frc_xKfbvQ6CN4_-qyJ0_KDX7Q86QTDoDAfD66ve23_1IPGQ)
 
-- Docker
-- Go
-- Tilt
-- A local Kubernetes cluster
+## Tech stack
 
-### MacOS
+- **Language:** Go
+- **Containers:** Docker
+- **Orchestration:** Kubernetes
+- **Local dev:** Tilt, Minikube
+- **Messaging:** RabbitMQ
+- **Tracing:** Jaeger
 
-1. Install Homebrew from [Homebrew's official website](https://brew.sh/)
+## Project structure
 
-2. Install Docker for Desktop from [Docker's official website](https://www.docker.com/products/docker-desktop/)
+```
+.
+├── docs/architecture   # Architecture documentation
+├── infra               # Docker/Kubernetes manifests (dev + production)
+├── proto               # Protobuf definitions for inter-service communication
+├── services            # Go microservices (api-gateway, driver, trip, payment)
+├── shared              # Shared Go packages/libraries
+├── tools               # Developer tooling/scripts
+├── web                 # Frontend client
+├── Makefile
+├── Tiltfile
+├── go.mod
+└── go.sum
+```
 
-3. Install Minikube from [Minikube's official website](https://minikube.sigs.k8s.io/docs/)
+## Prerequisites
 
-4. Install Tilt from [Tilt's official website](https://tilt.dev/)
+- [Go](https://go.dev/)
+- [Docker](https://www.docker.com/products/docker-desktop/)
+- [Tilt](https://tilt.dev/)
+- A local Kubernetes cluster ([Minikube](https://minikube.sigs.k8s.io/docs/) or Docker Desktop's built-in cluster)
+- [kubectl](https://kubernetes.io/docs/tasks/tools/)
 
-5. Install Go on MacOS using Homebrew:
+### macOS setup
+
 ```bash
+# Install Homebrew: https://brew.sh/
+
+# Install Docker Desktop: https://www.docker.com/products/docker-desktop/
+# Install Minikube: https://minikube.sigs.k8s.io/docs/
+# Install Tilt: https://tilt.dev/
+
+# Install Go
 brew install go
 ```
 
-6. Make sure [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl-macos/) is installed.
+### Windows (WSL) setup
 
-### Windows (WSL)
+Install [WSL](https://learn.microsoft.com/en-us/windows/wsl/install), then [Docker Desktop](https://www.docker.com/products/docker-desktop/), [Minikube](https://minikube.sigs.k8s.io/docs/), and [Tilt](https://tilt.dev/). Install Go inside WSL:
 
-This is a step by step guide to install Go on Windows using WSL.
-You can either install via WSL (recommended) or using powershell (not covered, but similar to WSL).
-
-1. Install WSL for Windows from [Microsoft's official website](https://learn.microsoft.com/en-us/windows/wsl/install)
-
-2. Install Docker for Windows from [Docker's official website](https://www.docker.com/products/docker-desktop/)
-
-3. Install Minikube from [Minikube's official website](https://minikube.sigs.k8s.io/docs/)
-
-4. Install Tilt from [Tilt's official website](https://tilt.dev/)
-
-5. Install Go on Windows using WSL:
 ```bash
-# 1. Get the Go binary
 wget https://dl.google.com/go/go1.23.0.linux-amd64.tar.gz
-
-# 2. Extract the tarball
 sudo tar -xvf go1.23.0.linux-amd64.tar.gz
-
-# 3. Move the extracted folder to /usr/local
 sudo mv go /usr/local
 
-# 4. Add Go to PATH (following the steps from the video)
-cd ~
-explorer.exe .
-
-# Open .bashrc file and add following lines at the bottom and save the file.
+# Add to ~/.bashrc
 export GOROOT=/usr/local/go
 export GOPATH=$HOME/go
 export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
 
-# 5. Verify the installation
 go version
 ```
 
-6. Make sure [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl-macos/) is installed.
+Install `kubectl` from the [official docs](https://kubernetes.io/docs/tasks/tools/).
 
-## Run
+## Getting started
+
+Start the local development environment:
 
 ```bash
 tilt up
 ```
 
-## Monitor
+Monitor running pods:
 
 ```bash
 kubectl get pods
 ```
 
-or
+or open the dashboard:
 
 ```bash
 minikube dashboard
 ```
 
-## Deployment (Google Cloud example)
-It's advisable to first run the steps manually and then build a proper CI/CD flow according to your infrastructure.
+## Deployment
 
-## 0. Environments
+The example below deploys to Google Kubernetes Engine (GKE). Run these steps manually first, then adapt them into a CI/CD pipeline for your infrastructure.
+
+### 1. Set environment variables
+
 ```bash
-REGION: europe-west1 # change according to your location
-PROJECT_ID: roundtrip-503423	
+REGION=europe-west1       # change to your region
+PROJECT_ID=roundtrip-503423
 ```
 
-## 1. Add secrets.yaml file to the production folder
+### 2. Add production secrets
 
-Production folder needs to contain a secrets.yaml for the production environment, you can just copy secrets from the development folder for now.
+Add a `secrets.yaml` file to the production folder. You can copy the development secrets as a starting point.
 
-## 2. Build Docker Images
-Build all docker images and tag them accordingly to push to Artifact Registry.
+### 3. Build the Docker images
+
 ```bash
-# Build the Api gateway 
-docker build -t {REGION}-docker.pkg.dev/{PROJECT_ID}/roundtrip/api-gateway:latest --platform linux/amd64 -f infra/production/docker/api-gateway.Dockerfile .
+docker build -t ${REGION}-docker.pkg.dev/${PROJECT_ID}/roundtrip/api-gateway:latest \
+  --platform linux/amd64 -f infra/production/docker/api-gateway.Dockerfile .
 
-# Build the Driver service 
-docker build -t {REGION}-docker.pkg.dev/{PROJECT_ID}/roundtrip/driver-service:latest --platform linux/amd64 -f infra/production/docker/driver-service.Dockerfile .
+docker build -t ${REGION}-docker.pkg.dev/${PROJECT_ID}/roundtrip/driver-service:latest \
+  --platform linux/amd64 -f infra/production/docker/driver-service.Dockerfile .
 
-# Build the Trip service 
-docker build -t {REGION}-docker.pkg.dev/{PROJECT_ID}/roundtrip/trip-service:latest --platform linux/amd64 -f infra/production/docker/trip-service.Dockerfile .
+docker build -t ${REGION}-docker.pkg.dev/${PROJECT_ID}/roundtrip/trip-service:latest \
+  --platform linux/amd64 -f infra/production/docker/trip-service.Dockerfile .
 
-# Build the Payment service 
-docker build -t {REGION}-docker.pkg.dev/{PROJECT_ID}/roundtrip/payment-service:latest --platform linux/amd64 -f infra/production/docker/payment-service.Dockerfile .
+docker build -t ${REGION}-docker.pkg.dev/${PROJECT_ID}/roundtrip/payment-service:latest \
+  --platform linux/amd64 -f infra/production/docker/payment-service.Dockerfile .
 ```
 
-## 3. Create a Artifact Registry repository
-Go to Google Cloud > Artifact Registry and manually create a docker repository to host your project images. 
+### 4. Create an Artifact Registry repository
 
+In Google Cloud, go to **Artifact Registry** and create a Docker repository to host the images.
 
-## 4. Push the Docker images to artifact registry
-
-Docker push the images. 
-If you get errors pushing:
-1. Make sure to `gcloud login`, select the right project or even `gcloud init`.
-2. Configure artifact on your docker config `gcloud auth configure-docker {REGION}-docker.pkg.dev` [Docs](https://cloud.google.com/artifact-registry/docs/docker/pushing-and-pulling#cred-helper)
-
-
-## 5. Create a Google Kubernetes Cluster
-You can either run a `gcloud` command to start a GKE cluster or manually create a cluster on the UI (recommended).
-
-## 6. Update manifests files
-
-Connect to your remote cluster and apply the kubernetes manifests.
+### 5. Push the images
 
 ```bash
-gcloud container clusters get-credentials roundtrip --region {REGION}--project {PROJECT_ID}
+gcloud auth login
+gcloud config set project ${PROJECT_ID}
+gcloud auth configure-docker ${REGION}-docker.pkg.dev
 ```
 
-Next, upload each manifest by hand to make sure the correct order is maintained.
+Then push each image built in step 3. See the [Artifact Registry docs](https://cloud.google.com/artifact-registry/docs/docker/pushing-and-pulling#cred-helper) if you run into authentication errors.
+
+### 6. Create a GKE cluster
+
+Create a cluster via `gcloud` or the Cloud Console UI.
+
+### 7. Apply the Kubernetes manifests
 
 ```bash
-# First, apply the app-config and secrets
+gcloud container clusters get-credentials roundtrip --region ${REGION} --project ${PROJECT_ID}
+```
+
+Apply manifests in order, waiting for each dependency to be ready before continuing:
+
+```bash
+# Config and secrets
 kubectl apply -f infra/production/k8s/app-config.yaml
 kubectl apply -f infra/production/k8s/secrets.yaml
 
-# Jaeger
+# Infrastructure
 kubectl apply -f infra/production/k8s/jaeger-deployment.yaml
-
-# RabbitMQ
 kubectl apply -f infra/production/k8s/rabbitmq-deployment.yaml
+# Wait for Jaeger and RabbitMQ to be running
 
-# Wait for both Jaeger and RabbitMQ to be running successfully
-
-# Then, apply the services
+# Services
 kubectl apply -f infra/production/k8s/api-gateway-deployment.yaml
-# Wait until the API is up and then do the next and so on...
+# Wait for the API gateway to be up, then continue
 kubectl apply -f infra/production/k8s/driver-service-deployment.yaml
 kubectl apply -f infra/production/k8s/trip-service-deployment.yaml
 kubectl apply -f infra/production/k8s/payment-service-deployment.yaml
 ```
 
-If you need to redeploy you can use the same command above or just `kubectl apply -f infra/production/k8s`
-Sometimes pods might need to be deleted for new ones to be deployed.
+To redeploy:
 
 ```bash
-kubectl get pods
-kubectl delete pod <pod-name>
-
-# or for all deployments
+kubectl apply -f infra/production/k8s
 kubectl rollout restart deployment
 ```
 
-## 7. Enjoy!
+### 8. Access the API
+
 ```bash
-Get the External IP from the api-gateway
 kubectl get services
 ```
 
-Go back to locally developing your project by changing kubernetes context
+Use the external IP listed for `api-gateway`.
+
+### Switching back to local development
+
 ```bash
 kubectl config get-contexts
 
-# For Docker Desktop
+# Docker Desktop
 kubectl config use-context docker-desktop
 
-# OR for Minikube
+# Minikube
 kubectl config use-context minikube
 ```
 
-## Adding HTTPS to your API
-0. Reserve a static IP in GCP:
-Go to the Google Cloud Console → VPC Network → External IP addresses.
-Click "RESERVE STATIC ADDRESS".
-Name it api-gateway-ip (to match your annotation).
-Choose the same region as your GKE cluster (or "global" if using a global Ingress).
+## Adding HTTPS
 
-Confirm your IP exists:
-```bash
-gcloud compute addresses list
-```
+1. Reserve a static IP in GCP (VPC Network → External IP addresses), named e.g. `api-gateway-ip`, in the same region as your cluster (or "global" for a global Ingress). Confirm with:
 
-1. Add the ingress deployment
-2. Change from LoadBalancer to ClusterIP
-3. Apply the config
-```bash
-kubectl apply -f infra/production/k8s/api-gateway-ingress.yaml
-kubectl apply -f infra/production/k8s/api-gateway-deployment.yaml
-```
-4. Get the IP address: 
-```bash
-kubectl get ingress api-gateway-ingress
-```
+   ```bash
+   gcloud compute addresses list
+   ```
 
-You should also wait for SSL certificate to be provisioned. Check the status:
+2. Add an Ingress resource and change the API gateway service from `LoadBalancer` to `ClusterIP`.
 
-```bash
-kubectl describe managedcertificate api-gateway-cert
-```
+3. Apply the config:
 
-Once the certificate is provisioned (you'll see a "Provisioning" status change to "Active")
+   ```bash
+   kubectl apply -f infra/production/k8s/api-gateway-ingress.yaml
+   kubectl apply -f infra/production/k8s/api-gateway-deployment.yaml
+   ```
 
-5. The Ingress will automatically provision a Google-managed SSL certificate for the IP address. You can access your API using:
-```bash
-https://<IP_ADDRESS>
-```
+4. Get the Ingress IP:
 
-Note: Since this is using a self-signed certificate, browsers will show a security warning. This is normal and expected. You can:
-Accept the warning in your browser (not recommended for production)
-Use a proper domain name (recommended for production)
+   ```bash
+   kubectl get ingress api-gateway-ingress
+   ```
+
+5. Wait for the Google-managed SSL certificate to provision:
+
+   ```bash
+   kubectl describe managedcertificate api-gateway-cert
+   ```
+
+   Once the status changes from "Provisioning" to "Active", the API is reachable at `https://<IP_ADDRESS>`.
+
+   > Note: with a self-signed/managed certificate on a bare IP, browsers may show a security warning. For production, use a proper domain name.
+
+## Credits
+
+Generated from the [microservices-go-starter](https://github.com/codealong-dev/microservices-go-starter) template.
