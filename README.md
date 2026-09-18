@@ -242,7 +242,3 @@ kubectl config use-context minikube
    Once the status changes from "Provisioning" to "Active", the API is reachable at `https://<IP_ADDRESS>`.
 
    > Note: with a self-signed/managed certificate on a bare IP, browsers may show a security warning. For production, use a proper domain name.
-
-## Credits
-
-Generated from the [microservices-go-starter](https://github.com/codealong-dev/microservices-go-starter) template.
